@@ -11,6 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as FlashcardsRouteImport } from './routes/flashcards'
+import { Route as FocusMusicRouteImport } from './routes/focus-music'
+import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as ExploreSceneIdRouteImport } from './routes/explore.$sceneId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +26,21 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FlashcardsRoute = FlashcardsRouteImport.update({
+  id: '/flashcards',
+  path: '/flashcards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FocusMusicRoute = FocusMusicRouteImport.update({
+  id: '/focus-music',
+  path: '/focus-music',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlannerRoute = PlannerRouteImport.update({
+  id: '/planner',
+  path: '/planner',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExploreSceneIdRoute = ExploreSceneIdRouteImport.update({
   id: '/explore/$sceneId',
   path: '/explore/$sceneId',
@@ -32,30 +50,61 @@ const ExploreSceneIdRoute = ExploreSceneIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/flashcards': typeof FlashcardsRoute
+  '/focus-music': typeof FocusMusicRoute
+  '/planner': typeof PlannerRoute
   '/explore/$sceneId': typeof ExploreSceneIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/flashcards': typeof FlashcardsRoute
+  '/focus-music': typeof FocusMusicRoute
+  '/planner': typeof PlannerRoute
   '/explore/$sceneId': typeof ExploreSceneIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/flashcards': typeof FlashcardsRoute
+  '/focus-music': typeof FocusMusicRoute
+  '/planner': typeof PlannerRoute
   '/explore/$sceneId': typeof ExploreSceneIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/explore/$sceneId'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/flashcards'
+    | '/focus-music'
+    | '/planner'
+    | '/explore/$sceneId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/explore/$sceneId'
-  id: '__root__' | '/' | '/about' | '/explore/$sceneId'
+  to:
+    | '/'
+    | '/about'
+    | '/flashcards'
+    | '/focus-music'
+    | '/planner'
+    | '/explore/$sceneId'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/flashcards'
+    | '/focus-music'
+    | '/planner'
+    | '/explore/$sceneId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  FlashcardsRoute: typeof FlashcardsRoute
+  FocusMusicRoute: typeof FocusMusicRoute
+  PlannerRoute: typeof PlannerRoute
   ExploreSceneIdRoute: typeof ExploreSceneIdRoute
 }
 
@@ -75,6 +124,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/flashcards': {
+      id: '/flashcards'
+      path: '/flashcards'
+      fullPath: '/flashcards'
+      preLoaderRoute: typeof FlashcardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/focus-music': {
+      id: '/focus-music'
+      path: '/focus-music'
+      fullPath: '/focus-music'
+      preLoaderRoute: typeof FocusMusicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planner': {
+      id: '/planner'
+      path: '/planner'
+      fullPath: '/planner'
+      preLoaderRoute: typeof PlannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/explore/$sceneId': {
       id: '/explore/$sceneId'
       path: '/explore/$sceneId'
@@ -88,6 +158,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  FlashcardsRoute: FlashcardsRoute,
+  FocusMusicRoute: FocusMusicRoute,
+  PlannerRoute: PlannerRoute,
   ExploreSceneIdRoute: ExploreSceneIdRoute,
 }
 export const routeTree = rootRouteImport
