@@ -45,8 +45,8 @@ function referenceDeck(syllabus: string, count: number): SyllabusDeck {
     return {
       front: topic,
       back: hit
-        ? `${hit.h.name} (${hit.scene}): ${hit.h.summary}${hit.h.facts[0] ? ` ${hit.h.facts[0]}.` : ""}`
-        : "Recall the key points of this topic in your own words, then check your notes.",
+        ? `${hit.h.name} (${hit.scene}): ${hit.h.summary}${hit.h.facts[0] ? ` Remember: ${hit.h.facts[0]}.` : ""}`
+        : `${topic}: the short version — what it is, why it matters, and the one formula or fact examiners always ask about. Add an API key for the full AI-written explainer.`,
       topic: hit?.scene,
     };
   });
@@ -80,10 +80,10 @@ export const buildDeck = createServerFn({ method: "POST" })
     const moduleList = scenes.map((s) => `- ${s.title} (${s.subject})`).join("\n");
 
     const system = [
-      `You are SPATIA's flash-card author. A student gives you a syllabus; you write concise recall cards from it.`,
+      `You are SPATIA's study-note author. A student gives you a syllabus; you write short concept explainer cards from it — mini formula sheets, not quiz questions.`,
       `Syllabus topics may overlap these Spatia 3D modules:`,
       moduleList,
-      `Rules: write about ${data.count} cards, one concept per card, foundational topics first. Each front is a question or term of 140 characters or fewer. Each back is the answer in 1–3 sentences of 400 characters or fewer, grounded in the syllabus wording and in the matching module's subject where one fits. Each topic is a label of 2–4 words. Plain text only, no markdown, bullet lists or asterisks.`,
+      `Rules: write about ${data.count} cards, one concept per card, foundational topics first. Each front is the concept name or formula title of 80 characters or fewer — never a question. Each back is a short explainer of 400 characters or fewer: one plain sentence saying what it is, then the must-remember points or the key formula with each symbol named, grounded in the syllabus wording and in the matching module's subject where one fits. Each topic is a label of 2–4 words. Plain text only, no markdown, bullet lists or asterisks.`,
     ].join("\n");
 
     const prompt = `Build about ${data.count} flash cards from this syllabus:\n"""${data.syllabus}"""`;

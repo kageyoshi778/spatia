@@ -178,9 +178,9 @@ export function SceneCanvas({
       gl={{ antialias: true }}
       onPointerMissed={() => onSelectHotspot("")}
     >
-      <color attach="background" args={["#161a22"]} />
-      <fog attach="fog" args={["#161a22", 26, 70]} />
+      <color attach="background" args={["#031634"]} />
 
+      <fog attach="fog" args={["#031634", 26, 70]} />
       <hemisphereLight args={["#bcd7ff", "#2a2f3d", 0.55]} />
       <directionalLight
         position={[8, 14, 8]}

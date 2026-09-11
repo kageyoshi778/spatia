@@ -21,16 +21,40 @@ type Props = {
   quiet?: boolean;
 };
 
+function describeViewpoint(v: Viewpoint): { plain: string; raw: string } {
+  const azDeg = Math.round(((((v.azimuth * 180) / Math.PI) % 360) + 360) % 360);
+  const el = Math.round(90 - (v.polar * 180) / Math.PI);
+  const dist = v.distance < 4 ? "Close-up" : v.distance < 8 ? "Medium range" : "Wide view";
+  const side =
+    azDeg < 45 || azDeg >= 315
+      ? "front"
+      : azDeg < 135
+        ? "right side"
+        : azDeg < 225
+          ? "rear"
+          : "left side";
+  const vertical = el > 25 ? "from above" : el < -25 ? "from below" : "at eye level";
+  return {
+    plain: `${dist} · ${side}, ${vertical}`,
+    raw: `${v.distance.toFixed(1)}u · az ${azDeg}° · el ${el}°`,
+  };
+}
+
 export function TutorPanel({ scene, hotspot, viewpoint, narration = null, quiet = false }: Props) {
   const ask = useServerFn(askTutor);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
   const scroller = useRef<HTMLDivElement>(null);
   const lastAuto = useRef<string | null>(null);
+  const lastRequest = useRef<{
+    question?: string | undefined;
+    hotspotId?: string | undefined;
+  } | null>(null);
 
   const mutation = useMutation({
-    mutationFn: (vars: { question?: string | undefined; hotspotId?: string | undefined }) =>
-      ask({
+    mutationFn: (vars: { question?: string | undefined; hotspotId?: string | undefined }) => {
+      lastRequest.current = vars;
+      return ask({
         data: {
           sceneId: scene.id,
           hotspotId: vars.hotspotId,
@@ -38,7 +62,8 @@ export function TutorPanel({ scene, hotspot, viewpoint, narration = null, quiet 
           viewpoint: viewpoint ?? undefined,
           history: turns.slice(-6).map(({ role, content }) => ({ role, content })),
         },
-      }),
+      });
+    },
     onSuccess: (reply) => {
       setTurns((t) => [
         ...t,
@@ -112,21 +137,27 @@ export function TutorPanel({ scene, hotspot, viewpoint, narration = null, quiet 
       </div>
 
       <div className="flex items-start gap-2 border-b border-border/70 bg-secondary/40 px-4 py-2.5">
-        <Crosshair className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+        <Crosshair className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
         <p className="text-xs leading-relaxed text-muted-foreground">
           <span className="text-foreground">{hotspot ? hotspot.name : "Free navigation"}</span>
           {viewpoint ? (
             <>
               {" · "}
-              {viewpoint.distance.toFixed(1)}u ·{" "}
-              {`az ${Math.round(((((viewpoint.azimuth * 180) / Math.PI) % 360) + 360) % 360)}°`} ·{" "}
-              {`el ${Math.round(90 - (viewpoint.polar * 180) / Math.PI)}°`}
+              <span title={describeViewpoint(viewpoint).raw}>
+                {describeViewpoint(viewpoint).plain}
+              </span>
             </>
           ) : null}
         </p>
       </div>
 
-      <div ref={scroller} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div
+        ref={scroller}
+        role="log"
+        aria-live="polite"
+        aria-label="Tutor conversation"
+        className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4"
+      >
         {turns.length === 0 && !mutation.isPending ? (
           <div className="rounded-lg border border-dashed border-border/80 bg-background/40 p-4">
             <Sparkles className="h-4 w-4 text-primary" />
@@ -167,16 +198,38 @@ export function TutorPanel({ scene, hotspot, viewpoint, narration = null, quiet 
         )}
 
         {mutation.isPending ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+          <div role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" aria-hidden />
             Reading your viewpoint…
           </div>
         ) : null}
 
         {mutation.isError ? (
-          <p className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive-foreground">
-            {(mutation.error as Error).message}
-          </p>
+          <div
+            role="alert"
+            className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2"
+          >
+            <p className="text-sm text-destructive-foreground">
+              {(mutation.error as Error).message}
+            </p>
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={() => {
+                  mutation.reset();
+                  if (lastRequest.current) mutation.mutate(lastRequest.current);
+                }}
+                className="min-h-[36px] rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => mutation.reset()}
+                className="min-h-[36px] rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
         ) : null}
       </div>
 
@@ -187,7 +240,7 @@ export function TutorPanel({ scene, hotspot, viewpoint, narration = null, quiet 
               key={s}
               onClick={() => submit(s)}
               disabled={mutation.isPending}
-              className="rounded-full border border-border/80 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:opacity-50"
+              className="min-h-[32px] rounded-full border border-border/80 px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:border-primary/60 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
             >
               {s}
             </button>
@@ -204,15 +257,16 @@ export function TutorPanel({ scene, hotspot, viewpoint, narration = null, quiet 
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Ask about what you're seeing…"
-            className="min-w-0 flex-1 rounded-lg border border-input bg-background/60 px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-primary/70"
+            aria-label="Ask the tutor about this module"
+            className="min-w-0 flex-1 rounded-lg border border-input bg-background/60 px-3 py-2 text-sm caret-[var(--primary)] outline-none placeholder:text-muted-foreground focus:border-primary/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           />
           <button
             type="submit"
             disabled={mutation.isPending || !draft.trim()}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-40"
             aria-label="Send question"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4" aria-hidden />
           </button>
         </form>
       </div>

@@ -1,6 +1,6 @@
 import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeftRight, Bot, Check, Loader2, RotateCcw, Shuffle, X } from "lucide-react";
+import { Bot, Check, Loader2, RotateCcw, Shuffle, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { SiteNav } from "@/components/SiteNav";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/flashcards")({
       {
         name: "description",
         content:
-          "Flip through structure decks drawn from every Spatia module, or build an AI deck from your syllabus.",
+          "Short concept explainers and formula notes drawn from every Spatia module, or built by AI from your syllabus.",
       },
     ],
   }),
@@ -63,6 +63,22 @@ function loadDeck(key: string): Card[] {
   }
 }
 
+/* Soft eye-light tints for the note cards — cream / tan / teal washes, never neon. */
+const CARD_TINTS = [
+  { bg: "#f1e9d4", edge: "#cdb380" }, // sand
+  { bg: "#dce8e2", edge: "#036564" }, // teal wash
+  { bg: "#d9e1e6", edge: "#033649" }, // deep wash
+  { bg: "#e9ddbd", edge: "#cdb380" }, // tan
+  { bg: "#d3e0dc", edge: "#036564" }, // pale teal
+  { bg: "#e3e6ea", edge: "#033649" }, // mist
+];
+
+function tintFor(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return CARD_TINTS[h % CARD_TINTS.length]!;
+}
+
 function Flashcards() {
   const deckFn = useServerFn(buildDeck);
   const { source } = routeApi.useSearch();
@@ -97,7 +113,6 @@ function Flashcards() {
   const [filter, setFilter] = useState<string>("All");
   const [order, setOrder] = useState<number[]>(() => moduleDeck.map((_, i) => i));
   const [pos, setPos] = useState(0);
-  const [flipped, setFlipped] = useState(false);
   const [known, setKnown] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -120,7 +135,6 @@ function Flashcards() {
   useEffect(() => {
     setOrder(deck.map((_, i) => i));
     setPos(0);
-    setFlipped(false);
     setFilter("All");
     setKnown(new Set());
   }, [deckName, syllabusDeck.length, moduleDeck.length]);
@@ -175,12 +189,10 @@ function Flashcards() {
 
   function go(delta: number) {
     if (!filtered.length) return;
-    setFlipped(false);
     setPos((p) => (p + delta + filtered.length) % filtered.length);
   }
 
   function goTo(i: number) {
-    setFlipped(false);
     setPos(((i % filtered.length) + filtered.length) % filtered.length);
   }
 
@@ -192,7 +204,6 @@ function Flashcards() {
     }
     setOrder(arr);
     setPos(0);
-    setFlipped(false);
   }
 
   function mark(id: string, value: boolean) {
@@ -210,10 +221,10 @@ function Flashcards() {
       <SiteNav />
       <div className="mx-auto max-w-6xl px-6 py-10 md:py-12">
         <p className="eyebrow">Features · Flash cards</p>
-        <h1 className="mt-3 text-4xl leading-tight md:text-5xl">Recall every structure.</h1>
+        <h1 className="mt-3 text-4xl leading-tight md:text-5xl">Concepts, minus the fluff.</h1>
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-          Flip, self-grade, and shuffle — the module deck uses the same reference notes as the
-          studio tutor, or build an AI deck from your planner syllabus.
+          Short explainers and formula notes — the module deck distils the same reference notes as
+          the studio tutor, or build an AI deck from your planner syllabus.
         </p>
 
         {/* deck switcher + AI builder */}
@@ -279,7 +290,6 @@ function Flashcards() {
                 onClick={() => {
                   setFilter(s);
                   setPos(0);
-                  setFlipped(false);
                 }}
                 className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
                   filter === s
@@ -323,6 +333,7 @@ function Flashcards() {
                   if (!c) return null;
                   const isCurrent = i === pos % filtered.length;
                   const isKnown = known.has(c.id);
+                  const tint = tintFor(c.id);
                   return (
                     <li key={c.id}>
                       <button
@@ -331,6 +342,11 @@ function Flashcards() {
                           isCurrent ? "bg-primary/10" : "hover:bg-secondary"
                         }`}
                       >
+                        <span
+                          aria-hidden
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: tint.edge }}
+                        />
                         <span className="font-mono text-[10px] text-muted-foreground">
                           {String(i + 1).padStart(2, "0")}
                         </span>
@@ -353,60 +369,53 @@ function Flashcards() {
 
           <div className="min-w-0 lg:sticky lg:top-20">
             {card ? (
-              <button
-                onClick={() => setFlipped((v) => !v)}
-                className="panel card-lift block aspect-[3/5] w-full cursor-pointer overflow-y-auto p-8 text-left hover:border-primary/40 md:p-10"
+              <article
+                className="card-lift mx-auto block aspect-[4/5] w-full max-w-[400px] overflow-y-auto rounded-lg border p-8"
+                style={{
+                  backgroundColor: tintFor(card.id).bg,
+                  borderColor: tintFor(card.id).edge,
+                  boxShadow: "var(--shadow-panel)",
+                }}
               >
-                <p className="eyebrow">{flipped ? "Answer" : "Question"}</p>
-                {!flipped ? (
-                  <div className="flex min-h-[70%] flex-col justify-center">
-                    <p className="label-mono mt-4">
-                      {card.sceneTitle} · {card.category}
-                    </p>
-                    <p className="mt-2 font-display text-3xl leading-tight md:text-4xl">
-                      {card.front}
-                    </p>
-                    <p className="mt-8 inline-flex items-center gap-2 text-sm text-muted-foreground">
-                      <ArrowLeftRight className="h-4 w-4" /> Click to reveal
-                    </p>
+                <p className="eyebrow">Concept notes</p>
+                <p className="label-mono mt-4">
+                  {card.sceneTitle} · {card.category}
+                </p>
+                <p className="mt-2 font-display text-2xl leading-tight md:text-3xl">
+                  {card.front}
+                </p>
+                <div
+                  aria-hidden
+                  className="my-5 h-px w-full"
+                  style={{ backgroundColor: tintFor(card.id).edge }}
+                />
+                <p className="text-base leading-relaxed">{card.back}</p>
+                {card.facts.length ? (
+                  <div className="mt-5">
+                    <p className="label-mono">Key points</p>
+                    <ul className="mt-2 space-y-1.5">
+                      {card.facts.map((f) => (
+                        <li
+                          key={f}
+                          className="rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-xs text-muted-foreground"
+                        >
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                ) : (
-                  <>
-                    <p className="label-mono mt-4">
-                      {card.front} · {card.sceneTitle}
-                    </p>
-                    <p className="mt-4 text-base leading-relaxed">{card.back}</p>
-                    {card.facts.length ? (
-                      <ul className="mt-5 space-y-1.5">
-                        {card.facts.map((f) => (
-                          <li
-                            key={f}
-                            className="rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground"
-                          >
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </>
-                )}
-              </button>
+                ) : null}
+              </article>
             ) : (
               <div className="panel p-8 text-sm text-muted-foreground">No cards in this deck.</div>
             )}
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               <button
                 onClick={() => go(-1)}
                 className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 ← Prev
-              </button>
-              <button
-                onClick={() => setFlipped((v) => !v)}
-                className="rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Flip
               </button>
               <button
                 onClick={() => go(1)}
@@ -420,13 +429,13 @@ function Flashcards() {
                     onClick={() => mark(card.id, true)}
                     className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 px-4 py-2 text-sm text-accent transition-colors hover:bg-accent/10"
                   >
-                    <Check className="h-4 w-4" /> Know it
+                    <Check className="h-4 w-4" /> Got it
                   </button>
                   <button
                     onClick={() => mark(card.id, false)}
                     className="inline-flex items-center gap-1.5 rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    <X className="h-4 w-4" /> Still learning
+                    <X className="h-4 w-4" /> Review later
                   </button>
                 </>
               ) : null}
@@ -434,7 +443,6 @@ function Flashcards() {
                 onClick={() => {
                   setKnown(new Set());
                   setPos(0);
-                  setFlipped(false);
                 }}
                 className="inline-flex items-center gap-1.5 px-2 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
               >

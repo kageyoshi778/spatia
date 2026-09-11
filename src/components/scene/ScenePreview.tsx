@@ -8,7 +8,7 @@ import { GltfModel } from "./GltfModel";
 export function ScenePreview() {
   return (
     <Canvas dpr={[1, 1.5]} camera={{ position: [3.6, 1.4, 5.2], fov: 38 }} gl={{ antialias: true }}>
-      <color attach="background" args={["#161a22"]} />
+      <color attach="background" args={["#031634"]} />
       <hemisphereLight args={["#e8e1d4", "#2a2f3d", 0.5]} />
       <directionalLight position={[6, 10, 6]} intensity={1.8} />
       <directionalLight position={[-8, 3, -5]} intensity={0.5} color="#c9d7ff" />

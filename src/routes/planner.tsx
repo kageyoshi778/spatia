@@ -522,8 +522,7 @@ function Planner() {
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
                 Paste or drop a syllabus file. The AI categorises each topic onto the closest Spatia
-                module and spreads sessions from the start date. You set the key — it reads
-                ANTHROPIC_API_KEY / GOOGLE_GENERATIVE_AI_API_KEY from the server .env.
+                module and spreads sessions from the start date. .
               </p>
 
               <div

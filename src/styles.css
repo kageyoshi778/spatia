@@ -5,10 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * SPATIA design system — a scientific atlas.
- * Warm paper, ink type, one vermilion accent for action, deep teal for the tutor.
- * The 3D viewport is the one dark surface: a specimen chamber set into the page.
- * All colors are oklch semantic tokens. Never hardcode colors in components.
+ * SPATIA design system — a spatial atlas in five colors.
+ * Cream paper (#E8DDCB), tan hairlines (#CDB380), teal action (#036564),
+ * deep-sea secondary (#033649), abyss ink (#031634, also the 3D chamber).
+ * All colors are semantic tokens. Never hardcode colors in components.
  */
 
 @theme inline {
@@ -51,49 +51,55 @@
 :root {
   --radius: 0.375rem;
 
-  --background: oklch(0.975 0.007 85);
-  --foreground: oklch(0.2 0.02 262);
+  --background: #e8ddcb;
+  --foreground: #031634;
 
-  --surface: oklch(0.992 0.004 85);
-  --surface-raised: oklch(0.955 0.009 85);
+  --surface: #efe7d3;
+  --surface-raised: #e3d3ae;
 
-  --card: oklch(0.992 0.004 85);
-  --card-foreground: oklch(0.2 0.02 262);
-  --popover: oklch(0.992 0.004 85);
-  --popover-foreground: oklch(0.2 0.02 262);
+  --card: #efe7d3;
+  --card-foreground: #031634;
+  --popover: #efe7d3;
+  --popover-foreground: #031634;
 
-  --primary: oklch(0.56 0.19 32);
-  --primary-foreground: oklch(0.985 0.005 85);
-  --primary-glow: oklch(0.7 0.16 40);
+  --primary: #036564;
+  --primary-foreground: #e8ddcb;
+  --primary-glow: #0e8b86;
 
-  --secondary: oklch(0.935 0.01 85);
-  --secondary-foreground: oklch(0.25 0.02 262);
+  --secondary: #cdb380;
+  --secondary-foreground: #031634;
 
-  --muted: oklch(0.935 0.01 85);
-  --muted-foreground: oklch(0.47 0.02 262);
+  --muted: #decca8;
+  --muted-foreground: #033649;
 
-  --accent: oklch(0.48 0.09 205);
-  --accent-foreground: oklch(0.985 0.005 85);
+  --accent: #033649;
+  --accent-foreground: #e8ddcb;
 
-  --destructive: oklch(0.55 0.2 25);
-  --destructive-foreground: oklch(0.985 0.005 85);
+  --destructive: #8c3b22;
+  --destructive-foreground: #e8ddcb;
 
-  --border: oklch(0.86 0.013 85);
-  --input: oklch(0.88 0.012 85);
-  --ring: oklch(0.56 0.19 32);
-  --grid: oklch(0.82 0.014 85);
+  --border: #cdb380;
+  --input: #cdb380;
+  --ring: #036564;
+  --grid: #cdb380;
 
-  --ink: oklch(0.19 0.022 262);
-  --ink-foreground: oklch(0.95 0.008 85);
+  --ink: #031634;
+  --ink-foreground: #e8ddcb;
 
-  --shadow-panel: 0 1px 0 oklch(1 0 0 / 0.6) inset, 0 1px 2px oklch(0.2 0.02 262 / 0.06);
-  --shadow-chamber: inset 0 0 0 1px oklch(1 0 0 / 0.04), inset 0 30px 60px -30px oklch(0 0 0 / 0.6);
+  --shadow-panel: 0 1px 0 rgb(255 255 255 / 0.35) inset, 0 1px 2px rgb(3 22 52 / 0.08);
+  --shadow-chamber:
+    inset 0 0 0 1px rgb(232 221 203 / 0.06), inset 0 30px 60px -30px rgb(0 0 0 / 0.6);
   --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent);
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   html {
@@ -106,6 +112,19 @@
     font-family: var(--font-sans);
     font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--primary) 35%, var(--border));
+    border-radius: 8px;
+    border: 2px solid var(--background);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
   }
 
   h1,

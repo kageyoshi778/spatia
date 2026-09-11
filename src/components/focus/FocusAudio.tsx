@@ -297,7 +297,7 @@ export function FocusAudioProvider({ children }: { children: ReactNode }) {
       playing,
       volume,
       activeTitle: active?.title ?? null,
-      activeHue: active?.hue ?? 32,
+      activeHue: active?.hue ?? 185,
       analyserRef,
       toggle,
       stop,
