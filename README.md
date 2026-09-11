@@ -47,7 +47,7 @@ that ground the tutor.
 Requires Node 22+.
 
 ```sh
-git clone https://github.com/Cassian433/devpost-hackathon.git spatia
+git clone https://github.com/kageyoshi778/spatia.git spatia
 cd spatia
 npm install --legacy-peer-deps
 cp .env.example .env      # paste in ONE API key, see below
